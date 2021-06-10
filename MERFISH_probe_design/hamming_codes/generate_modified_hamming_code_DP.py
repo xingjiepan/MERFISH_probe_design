@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 '''Generate modified Hamming code by dynamic programing.
-The method is designed for small numbers of on-bits such as 4 on-bits.
+The method is deterministic. However, this method is not 
+recommanded because recursive code is slow in python and 
+the method does not guarantee optimal solution in most cases.
 Author: Xingjie Pan
 '''
 
