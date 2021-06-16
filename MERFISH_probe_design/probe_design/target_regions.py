@@ -53,5 +53,34 @@ def print_target_regions(target_regions:dict):
         
         for tk in target_regions[gk].keys():
             print(f'\t{tk}\t{target_regions[gk][tk].shape[0]}')
-    
 
+def select_transcripts_by_ids(target_regions:dict, transcript_ids:set):
+    '''Select transcripts with specified ids.
+    Return a new dictionary of target regions.
+    '''
+    new_target_regions = {}
+
+    for gk in target_regions.keys():
+        new_target_regions[gk] = {}
+        
+        for tk in target_regions[gk].keys():
+            if tk in transcript_ids:
+                new_target_regions[gk][tk] = target_regions[gk][tk].copy()
+
+    return new_target_regions
+
+def select_transcripts_by_num_target_regions(target_regions:dict):
+    '''For each gene, select the transcript that has most target regions.
+    Return a new dictionary of target regions.
+    '''
+    new_target_regions = {}
+
+    for gk in target_regions.keys():
+        new_target_regions[gk] = {}
+        
+        counts = [(tk, target_regions[gk][tk].shape[0]) for tk in target_regions[gk].keys()]
+        tk_max = max(counts, key=lambda x:x[1])[0]
+
+        new_target_regions[gk][tk_max] = target_regions[gk][tk_max].copy()
+
+    return new_target_regions
