@@ -94,3 +94,23 @@ def get_OTTable_for_transcriptome(transcriptome:pd.core.frame.DataFrame, K:int, 
     return get_OTTable_for_sequences(list(transcriptome_kept['sequence']), K, 
             weights=list(transcriptome_kept['FPKM']), verbose=True)
 
+def get_gene_OTTables(transcriptome:pd.core.frame.DataFrame, target_gene_ids:list, gene_id_key:str, 
+        K:int, FPKM_threshold:float=0):
+    '''Get a dictionary of gene-level OTTables.
+    Arguments:
+        transcriptome: A data frame of a transcriptome.
+        target_gene_ids: The ids of target genes.
+        gene_id_key: The column names for the gene ids. Options are gene_short_name and gene_id.
+        K: The size of K-mers for the OTTable.
+        FPKM_threshold: A transcript is included only if its FPKM is greater than this threshold.
+    '''
+    gene_ottable_dict = {}
+    
+    for gene_id in target_gene_ids:
+        print(f'Generate OTTable for gene {gene_id}.')
+        gene_transcriptome = transcriptome[transcriptome[gene_id_key] == gene_id]
+        gene_ottable_dict[gene_id] = get_OTTable_for_transcriptome(gene_transcriptome, K, FPKM_threshold=FPKM_threshold)
+
+    return gene_ottable_dict
+        
+
