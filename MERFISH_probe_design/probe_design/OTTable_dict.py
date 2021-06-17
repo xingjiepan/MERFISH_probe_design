@@ -31,12 +31,13 @@ class OTTable (dict):
         return ottable
 
 
-def get_OTTable_for_sequences(sequences:list, K:int, weights:list=[]):
+def get_OTTable_for_sequences(sequences:list, K:int, weights:list=[], verbose:bool=False):
     '''Get an OTTable for a list of sequences.
     Arguments:
         sequences: A list of sequences.
         K: The size of K-mers to extract from the sequences.
         weights: The weights of sequences.
+        verbose: Print the status for every 1,000 sequences. 
     '''
     # Use uniform weights if no weights are given
     if len(weights) == 0:
@@ -54,13 +55,16 @@ def get_OTTable_for_sequences(sequences:list, K:int, weights:list=[]):
         for j in range(len(seq) - K + 1): 
             table.add_seq(seq[j:j+K], w)
 
+        if verbose and (i + 1) % 1000 == 0:
+            print(f'Processed {i + 1}/{len(sequences)} sequences.')
+
     return table
 
 def get_OTTable_for_rtRNAs(ncRNAs:pd.core.frame.DataFrame, K:int):
     '''Get an OTTable for the rRNAs and tRNAs given a data frame of non-coding RNAs.
     Arguments:
         ncRNAs: A data frame of non-coding RNAs.
-        K: THe size of K-mers for the OTTable.
+        K: The size of K-mers for the OTTable.
     '''
     # Extract all rRNA and tRNA sequences
     biotypes_to_keep = ['rRNA', 'tRNA', 'Mt_rRNA', 'Mt_tRNA']
@@ -76,4 +80,17 @@ def get_OTTable_for_rtRNAs(ncRNAs:pd.core.frame.DataFrame, K:int):
     # Create a OTTable using the sequences of rRNAs/tRNAs
 
     return get_OTTable_for_sequences(rt_sequences, K)
+
+def get_OTTable_for_transcriptome(transcriptome:pd.core.frame.DataFrame, K:int, FPKM_threshold:float=0):
+    '''Get an OTTable for the transcriptome.
+    Arguments:
+        transcriptome: A data frame of a transcriptome.
+        K: The size of K-mers for the OTTable.
+        FPKM_threshold: A transcript is included only if its FPKM is greater than this threshold.
+    '''
+    transcriptome_kept = transcriptome[transcriptome['FPKM'] > FPKM_threshold]
+    print(f'Construct a OTTable using {transcriptome_kept.shape[0]}/{transcriptome.shape[0]} transcripts with FPKM > {FPKM_threshold}.')
+   
+    return get_OTTable_for_sequences(list(transcriptome_kept['sequence']), K, 
+            weights=list(transcriptome_kept['FPKM']), verbose=True)
 
