@@ -2,16 +2,22 @@
 
 import pandas as pd
 from Bio import SeqIO
+from Bio.Seq import reverse_complement
 
 
-def load_fasta_into_df(fasta_file:str):
+def load_fasta_into_df(fasta_file:str, load_rc:bool=False):
     '''Load a fasta file into a pandas data frame.'''
     d = {'id':[], 'description':[], 'sequence':[]}
-    
+    if load_rc:
+        d['sequence_rc'] = []
+
     for record in SeqIO.parse(fasta_file, 'fasta'):
         d['id'].append(record.id)
         d['description'].append(record.description)
         d['sequence'].append(str(record.seq))
+
+        if load_rc:
+            d['sequence_rc'].append(reverse_complement(str(record.seq)))
 
     return pd.DataFrame.from_dict(d)
 
@@ -71,3 +77,11 @@ def load_transcriptome(transcripts_fasta_file:str, fpkm_tracking_file:str):
     print(f'Kept {transcriptome.shape[0]} transcripts of {len(pd.unique(transcriptome["gene_id"]))} genes after merging.')
     
     return transcriptome
+
+def load_primers(forward_primer_file:str, reverse_primer_file:str):
+    '''Load the primers from fasta files'''
+    forward_primers = load_fasta_into_df(forward_primer_file, load_rc=True)
+    reverse_primers = load_fasta_into_df(reverse_primer_file, load_rc=True)
+
+    return forward_primers, reverse_primers 
+
