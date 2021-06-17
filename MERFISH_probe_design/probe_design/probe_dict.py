@@ -11,7 +11,7 @@ def init_probe_dict(target_gene_ids:list, transcriptome:pd.core.frame.DataFrame,
     Arguments:
         target_gene_ids: The ids of target genes.
         transcriptome: The transcriptome data frame.
-        get_id_key: The column names for the gene ids. Options are gene_short_name and gene_id.
+        gene_id_key: The column names for the gene ids. Options are gene_short_name and gene_id.
         K: The size of each target region.
     
     Return:

@@ -113,4 +113,28 @@ def get_gene_OTTables(transcriptome:pd.core.frame.DataFrame, target_gene_ids:lis
 
     return gene_ottable_dict
         
+def calc_OTs(probe_dict:dict, ottable:OTTable, seq_key:str, ot_key:str, K:int):
+    '''Calculate off-targets for sequences.
+    Arguments:
+        probe_dict: The probe dictionary.
+        ottable: The OTTable for off-target calculation.
+        seq_key: The column key for the sequences.
+        ot_key: The column key to save the off-targets.
+        K: The size of K-mers for the OTTable.
+    '''
+    for gk in probe_dict.keys():
+        for tk in probe_dict[gk].keys():
+            ot_counts = []
+
+            for seq in probe_dict[gk][tk][seq_key]:
+                ot_count = 0
+
+                for i in range(len(seq) - K + 1):
+                    ot_count += ottable[seq[i:i+K]]
+
+                ot_counts.append(ot_count)
+
+            probe_dict[gk][tk][ot_key] = pd.Series(ot_counts, index=probe_dict[gk][tk].index)
+                
+
 

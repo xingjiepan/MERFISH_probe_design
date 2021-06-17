@@ -26,7 +26,7 @@ def filter_gc_content(probe_dict:pd.core.frame.DataFrame, lower_bound:float, upp
             new_df = probe_dict[gk][tk][probe_dict[gk][tk]['target_GC'].between(
                 lower_bound, upper_bound, inclusive=True)]
             
-            print(f'{tk}: {new_df.shape[0]} / {probe_dict[gk][tk].shape[0]} probes passed GC filter.')
+            print(f'\t{tk}: {new_df.shape[0]} / {probe_dict[gk][tk].shape[0]} probes passed GC filter.')
             probe_dict[gk][tk] = new_df
 
 def calc_tm_for_probe_dict(probe_dict:pd.core.frame.DataFrame, Na_conc:float, fmd_percentile:float):
@@ -53,7 +53,6 @@ def filter_tm(probe_dict:pd.core.frame.DataFrame, lower_bound:float, upper_bound
             new_df = probe_dict[gk][tk][probe_dict[gk][tk]['target_Tm'].between(
                 lower_bound, upper_bound, inclusive=True)]
             
-            print(f'{tk}: {new_df.shape[0]} / {probe_dict[gk][tk].shape[0]} probes passed Tm filter.')
+            print(f'\t{tk}: {new_df.shape[0]} / {probe_dict[gk][tk].shape[0]} probes passed Tm filter.')
             probe_dict[gk][tk] = new_df
-
 

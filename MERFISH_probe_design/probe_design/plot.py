@@ -15,6 +15,18 @@ def get_values_from_probe_dict(probe_dict:pd.core.frame.DataFrame, column_key:st
     
     return values
 
+def plot_hist(probe_dict:pd.core.frame.DataFrame, column_key:str, y_max=None):
+    '''Plot histogram of values under the column_key'''
+    plt.hist(get_values_from_probe_dict(probe_dict, column_key))
+
+    if y_max is not None:
+        bottom, top = plt.ylim()
+        plt.ylim(bottom, y_max)
+
+    plt.xlabel(column_key)
+    plt.ylabel('Count')
+    plt.show()
+
 def plot_gc_content(probe_dict:pd.core.frame.DataFrame):
     '''Plot the GC content distribution for all probes.'''
     plt.hist(get_values_from_probe_dict(probe_dict, 'target_GC'))
