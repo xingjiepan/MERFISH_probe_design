@@ -41,7 +41,8 @@ def init_probe_dict(target_gene_ids:list, transcriptome:pd.core.frame.DataFrame,
             shifts.append(shift)
             sequences.append(seq[shift:shift + K])
             
-        probe_dict[gene_id][transcript_id] = pd.DataFrame({'shift':shifts, 'target_sequence':sequences})
+        probe_dict[gene_id][transcript_id] = pd.DataFrame({'gene_id':[gene_id] * len(shifts), 
+            'transcript_id':[transcript_id] * len(shifts), 'shift':shifts, 'target_sequence':sequences})
 
     return probe_dict
 
@@ -53,6 +54,17 @@ def print_probe_dict(probe_dict:dict):
         
         for tk in probe_dict[gk].keys():
             print(f'\t{tk}\t{probe_dict[gk][tk].shape[0]}')
+
+def probe_dict_to_df(probe_dict:dict):
+    '''Convert the probe dictionary into a single data frame.'''
+    df = None
+    for gk in probe_dict.keys():
+        for tk in probe_dict[gk].keys():
+            if df is None:
+                df = probe_dict[gk][tk].copy()
+            else:
+                df = df.append(probe_dict[gk][tk], ignore_index=True)
+    return df
 
 def select_transcripts_by_ids(probe_dict:dict, transcript_ids:set):
     '''Select transcripts with specified ids.
