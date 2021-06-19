@@ -12,6 +12,9 @@ def H_dist(code1:set, code2:set):
 
 
 def plot_pairwise_hamming_distance_distribution(code_list:list):
+    # Make sure that the on-bits are in sets for H_dist calculation
+    code_list = [set(c) for c in code_list]
+
     pairwise_dists = []
 
     for i in range(len(code_list)):
