@@ -59,6 +59,20 @@ def load_merlin_codebook(codebook_file:str):
     
     return version, codebook_name, bit_names, pd.DataFrame.from_dict(barcode_dict)
 
+def write_merlin_codebook(codebook_file:str, version:str, codebook_name:str, bit_names:list, 
+        gene_names:list, transcript_names:str, barcode_str_list:list):
+    '''Write a MERlin style codebook.'''
+    with open(codebook_file, 'w') as f:
+        # Write the header
+        f.write(f'version, {version}\n')
+        f.write(f'codebook_name, {codebook_name}\n')
+        f.write(f'bit_names {", ".join(bit_names)}\n')
+        f.write('name, id, barcode\n')
+
+        # Write the genes
+        for i in range(len(gene_names)):
+            f.write(f'{gene_names[i]}, {transcript_names[i]}, {barcode_str_list[i]}\n')
+
 def load_transcriptome(transcripts_fasta_file:str, fpkm_tracking_file:str):
     '''Load the transcriptome into a pandas data frame.'''
     
