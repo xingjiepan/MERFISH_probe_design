@@ -27,17 +27,3 @@ def plot_hist(probe_dict:pd.core.frame.DataFrame, column_key:str, y_max=None):
     plt.ylabel('Count')
     plt.show()
 
-def plot_gc_content(probe_dict:pd.core.frame.DataFrame):
-    '''Plot the GC content distribution for all probes.'''
-    plt.hist(get_values_from_probe_dict(probe_dict, 'target_GC'))
-    plt.xlabel('GC content (%)')
-    plt.ylabel('Count')
-    plt.show()
-
-def plot_tm(probe_dict:pd.core.frame.DataFrame):
-    '''Plot the Tm distribution for all probes.'''
-    plt.hist(get_values_from_probe_dict(probe_dict, 'target_Tm'))
-    plt.xlabel('Tm (°C)')
-    plt.ylabel('Count')
-    plt.show()
-
