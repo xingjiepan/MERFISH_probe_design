@@ -4,6 +4,7 @@
 
 import re
 import pickle
+import numpy as np
 import pandas as pd
 
 
@@ -136,5 +137,37 @@ def calc_OTs(probe_dict:dict, ottable:OTTable, seq_key:str, ot_key:str, K:int):
 
             probe_dict[gk][tk][ot_key] = pd.Series(ot_counts, index=probe_dict[gk][tk].index)
                 
+def calc_specificity(probe_dict:dict, ottable:OTTable, transcript_fpkms:dict, seq_key:str, speci_key:str, K:int):
+    '''Calculate specificities for sequences
+    Arguments:
+        probe_dict: The probe dictionary.
+        ottable: The OTTable for specificity calculation.
+        transcript_fpkms: A dictionary that maps the names of transcripts to their FPKMs.
+        seq_key: The column key for the sequences.
+        speci_key: The column key to save the specificities.
+        K: The size of K-mers for the OTTable.
+    '''
+    for gk in probe_dict.keys():
+        for tk in probe_dict[gk].keys():
+            # Set the specificities to be zeros if the transcript do not express
+            if 0 == transcript_fpkms[tk]:
+                specificities = [0] * probe_dict[gk][tk].shape[0]
+
+            # Calculate specificities for probes that target expressed transcripts
+            else:
+                specificities = []
+                for seq in probe_dict[gk][tk][seq_key]:
+                    
+                    # Calculate the specificities for each K-mer
+                    speci_K_mer = []
+                    for i in range(len(seq) - K + 1):
+                        speci_K_mer.append(transcript_fpkms[tk] / ottable[seq[i:i+K]])
+
+                    # The specificity of the sequence is the average of its K-mer specificities
+                    specificities.append(np.mean(speci_K_mer))
+
+            # Update the data frame
+            probe_dict[gk][tk][speci_key] = pd.Series(specificities, index=probe_dict[gk][tk].index)
+
 
 
