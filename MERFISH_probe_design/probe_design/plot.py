@@ -15,9 +15,9 @@ def get_values_from_probe_dict(probe_dict:pd.core.frame.DataFrame, column_key:st
     
     return values
 
-def plot_hist(probe_dict:pd.core.frame.DataFrame, column_key:str, y_max=None):
+def plot_hist(probe_dict:pd.core.frame.DataFrame, column_key:str, y_max=None, bins=30):
     '''Plot histogram of values under the column_key'''
-    plt.hist(get_values_from_probe_dict(probe_dict, column_key))
+    plt.hist(get_values_from_probe_dict(probe_dict, column_key), bins=bins)
 
     if y_max is not None:
         bottom, top = plt.ylim()
