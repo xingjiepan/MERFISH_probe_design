@@ -136,7 +136,40 @@ def calc_OTs(probe_dict:dict, ottable:OTTable, seq_key:str, ot_key:str, K:int):
                 ot_counts.append(ot_count)
 
             probe_dict[gk][tk][ot_key] = pd.Series(ot_counts, index=probe_dict[gk][tk].index)
+
+def calc_OT_diffs(probe_dict:dict, ottable:OTTable, seq_key1:str, seq_key2:str, ot_key:str, K:int):
+    '''Calculate off_target_seq2 - off_target_seq1.
+    Arguments:
+        probe_dict: The probe dictionary.
+        ottable: The OTTable for off-target calculation.
+        seq_key1: The column key for the first type of sequences.
+        seq_key2: The column key for the second type of sequences.
+        ot_key: The column key to save the differences of off-targets.
+        K: The size of K-mers for the OTTable.
+    '''
+    for gk in probe_dict.keys():
+        for tk in probe_dict[gk].keys():
+
+            # Calculate OTs of the first sequence
+            ots1 = []
+            for seq1 in probe_dict[gk][tk][seq_key1]:
+                ot_count1 = 0
+                for i in range(len(seq1) - K + 1):
+                    ot_count1 += ottable[seq1[i:i+K]]
+
+                ots1.append(ot_count1)
+
+            # Calculate OTs of the second sequence
+            ots2 = []
+            for seq2 in probe_dict[gk][tk][seq_key2]:
+                ot_count2 = 0
+                for i in range(len(seq2) - K + 1):
+                    ot_count2 += ottable[seq2[i:i+K]]
                 
+                ots2.append(ot_count2)
+
+            probe_dict[gk][tk][ot_key] = pd.Series(np.array(ots2) - np.array(ots1), index=probe_dict[gk][tk].index)
+
 def calc_specificity(probe_dict:dict, ottable:OTTable, gene_ottable_dict:dict, transcript_fpkms:dict, 
         seq_key:str, speci_key:str, isospeci_key:str, K:int):
     '''Calculate specificities and isoform specificities for sequences.
