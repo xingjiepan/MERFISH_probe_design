@@ -81,8 +81,8 @@ def calc_tm_JM(sequence:str, monovalentSalt:float=0.3, probeConc:float=5e-9):
     S = np.cumsum(dG[1,:])[-1]
 
     # Determine ends
-    fivePrimeAT = intSeq[0] == 0 | intSeq[0]  == 3;
-    threePrimeAT = intSeq[-1] == 0 | intSeq[-1] == 3;
+    fivePrimeAT = (intSeq[0] == 0) | (intSeq[0]  == 3);
+    threePrimeAT = (intSeq[-1] == 0) | (intSeq[-1] == 3);
 
     H = H + 0.2 + 2.2*fivePrimeAT + 2.2*threePrimeAT;
     S = S + -5.7 + 6.9*fivePrimeAT + 6.9*threePrimeAT;
