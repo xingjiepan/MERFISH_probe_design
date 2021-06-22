@@ -137,7 +137,8 @@ def calc_OTs(probe_dict:dict, ottable:OTTable, seq_key:str, ot_key:str, K:int):
 
             probe_dict[gk][tk][ot_key] = pd.Series(ot_counts, index=probe_dict[gk][tk].index)
 
-def calc_OT_diffs(probe_dict:dict, ottable:OTTable, seq_key1:str, seq_key2:str, ot_key:str, K:int):
+def calc_OT_diffs(probe_dict:dict, ottable:OTTable, seq_key1:str, seq_key2:str, ot_key:str, K:int,
+        transcript_fpkms=None):
     '''Calculate off_target_seq2 - off_target_seq1.
     Arguments:
         probe_dict: The probe dictionary.
@@ -146,6 +147,7 @@ def calc_OT_diffs(probe_dict:dict, ottable:OTTable, seq_key1:str, seq_key2:str, 
         seq_key2: The column key for the second type of sequences.
         ot_key: The column key to save the differences of off-targets.
         K: The size of K-mers for the OTTable.
+        transcript_fpkms: Weight the off-targets by the FPKMs of the target transcript.
     '''
     for gk in probe_dict.keys():
         for tk in probe_dict[gk].keys():
@@ -168,7 +170,12 @@ def calc_OT_diffs(probe_dict:dict, ottable:OTTable, seq_key1:str, seq_key2:str, 
                 
                 ots2.append(ot_count2)
 
-            probe_dict[gk][tk][ot_key] = pd.Series(np.array(ots2) - np.array(ots1), index=probe_dict[gk][tk].index)
+            if None is transcript_fpkms:
+                weight = 1
+            else:
+                weight = transcript_fpkms[tk] + 1e-30
+
+            probe_dict[gk][tk][ot_key] = pd.Series((np.array(ots2) - np.array(ots1)) / weight, index=probe_dict[gk][tk].index)
 
 def calc_specificity(probe_dict:dict, ottable:OTTable, gene_ottable_dict:dict, transcript_fpkms:dict, 
         seq_key:str, speci_key:str, isospeci_key:str, K:int):
