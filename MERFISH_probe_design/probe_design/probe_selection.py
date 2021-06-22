@@ -6,50 +6,6 @@ import numpy as np
 import pandas as pd
 
 
-def count_overlaps(df:pd.core.frame.DataFrame, indices:list):
-    '''Count overlaps given a data frame of probes and the indices of probes to consider.'''
-    # Get the length of target regions
-    target_length = len(df.iloc[0]['target_sequence'])
-   
-    # Get the max targetable length
-    max_targetable_length = np.max(df['shift']) + target_length
-
-    # Initialize a vector for coverage counting
-    coverage = np.zeros(max_targetable_length)
-
-    # Calculate the coverage
-    for shift in df.iloc[indices]['shift']:
-        for i in range(shift, shift + target_length):
-            coverage[i] += 1
-
-    # Return the number of overlaps
-    return np.sum(coverage * (coverage - 1)  / 2)
-
-def count_on_bit_coverage(df:pd.core.frame.DataFrame, indices:list, on_bits:list):
-    '''Count the coverage of on-bits given a data frame of probes
-    and the indices of probes to consider.
-    '''
-    on_bit_coverage = {ob:0 for ob in on_bits}
-    
-    for bc in df.iloc[indices]['probe_barcode']:
-        for i in range(len(bc)):
-            if bc[i] == '1':
-                on_bit_coverage[i] += 1
-
-    return on_bit_coverage
-
-def score_probe_subset(df:pd.core.frame.DataFrame, indices:list, on_bits:list):
-    '''Score a subset of probes given a data frame of probes
-    and the indices of probes to consider.
-    The lower the score, the better the subset.
-    '''
-    #N_overlaps = count_overlaps(df, indices)
-    on_bit_coverage = count_on_bit_coverage(df, indices, on_bits)
-    return 0
-
-    # Penalize overlaps and unevenly distributed probes
-    return N_overlaps + max(on_bit_coverage.values()) / (1 + min(on_bit_coverage.values()))
-
 def select_probes_greedy_stochastic_one_df(df:pd.core.frame.DataFrame, N_probes_per_transcript:int, N_on_bits:int):
     '''A greedy stochastic method to select probes from one data frame.'''
     if N_probes_per_transcript >= df.shape[0]:
