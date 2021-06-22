@@ -3,6 +3,7 @@
 '''
 
 import pandas as pd
+from Bio.Seq import reverse_complement
 
 
 def init_probe_dict(target_gene_ids:list, transcriptome:pd.core.frame.DataFrame, 
@@ -96,3 +97,12 @@ def select_transcripts_by_num_probes(probe_dict:dict):
         new_probe_dict[gk][tk_max] = probe_dict[gk][tk_max].copy()
 
     return new_probe_dict
+
+def get_rc_sequences(probe_dict:dict, input_column:str, output_column:str):
+    '''Get the reverse complementary sequences of a column of sequences.'''
+    for gk in probe_dict.keys():
+        for tk in probe_dict[gk].keys():
+            rc_seqs = [reverse_complement(seq) for seq in probe_dict[gk][tk][input_column]]
+            probe_dict[gk][tk][output_column] = pd.Series(rc_seqs, index=probe_dict[gk][tk].index)
+
+
