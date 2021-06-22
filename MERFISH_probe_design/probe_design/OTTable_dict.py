@@ -7,6 +7,8 @@ import pickle
 import numpy as np
 import pandas as pd
 
+from Bio.Seq import reverse_complement
+
 
 class OTTable (dict):
     '''A python dictionary based implementation of the off-target table.'''
@@ -113,7 +115,25 @@ def get_gene_OTTables(transcriptome:pd.core.frame.DataFrame, target_gene_ids:lis
         gene_ottable_dict[gene_id] = get_OTTable_for_transcriptome(gene_transcriptome, K, FPKM_threshold=FPKM_threshold)
 
     return gene_ottable_dict
-        
+
+def get_OTTable_for_probe_dictionary(probe_dict:dict, seq_key:str, K:int, rc:bool=False):
+    '''Get an OTTable from a probe dictionary.
+    Arguments:
+        probe_dict: The probe dictionary.
+        seq_key: The column key of the sequences.
+        K: The size of K-mers.
+        rc: Use the reverse complementary sequences.
+    '''
+    sequences = []
+    for gk in probe_dict.keys():
+        for tk in probe_dict[gk].keys():
+             sequences += list(probe_dict[gk][tk][seq_key])
+
+    if rc:
+        sequences = [reverse_complement(seq) for seq in sequences]
+
+    return get_OTTable_for_sequences(sequences, K)
+
 def calc_OTs(probe_dict:dict, ottable:OTTable, seq_key:str, ot_key:str, K:int):
     '''Calculate off-targets for sequences.
     Arguments:
