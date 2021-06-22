@@ -134,6 +134,27 @@ def get_OTTable_for_probe_dictionary(probe_dict:dict, seq_key:str, K:int, rc:boo
 
     return get_OTTable_for_sequences(sequences, K)
 
+def calc_OTs_df(df:pd.core.frame.DataFrame, ottable:OTTable, seq_key:str, ot_key:str, K:int):
+    '''Calculate off-targets for sequences in a data frame.
+    Arguments:
+        probe_dict: The probe dictionary.
+        ottable: The OTTable for off-target calculation.
+        seq_key: The column key for the sequences.
+        ot_key: The column key to save the off-targets.
+        K: The size of K-mers for the OTTable.
+    '''
+    ot_counts = []
+    for seq in df[seq_key]:
+        ot_count = 0
+
+        for i in range(len(seq) - K + 1):
+            ot_count += ottable[seq[i:i+K]]
+
+        ot_counts.append(ot_count)
+
+    df[ot_key] = pd.Series(ot_counts, index=df.index)
+
+
 def calc_OTs(probe_dict:dict, ottable:OTTable, seq_key:str, ot_key:str, K:int):
     '''Calculate off-targets for sequences.
     Arguments:
@@ -145,17 +166,7 @@ def calc_OTs(probe_dict:dict, ottable:OTTable, seq_key:str, ot_key:str, K:int):
     '''
     for gk in probe_dict.keys():
         for tk in probe_dict[gk].keys():
-            ot_counts = []
-
-            for seq in probe_dict[gk][tk][seq_key]:
-                ot_count = 0
-
-                for i in range(len(seq) - K + 1):
-                    ot_count += ottable[seq[i:i+K]]
-
-                ot_counts.append(ot_count)
-
-            probe_dict[gk][tk][ot_key] = pd.Series(ot_counts, index=probe_dict[gk][tk].index)
+            calc_OTs_df(probe_dict[gk][tk], ottable, seq_key, ot_key, K)
 
 def calc_OT_diffs(probe_dict:dict, ottable:OTTable, gene_ottable_dict:dict, transcript_fpkms:dict,
         seq_key1:str, seq_key2:str, ot_key:str, K:int):
