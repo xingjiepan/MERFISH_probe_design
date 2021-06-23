@@ -50,7 +50,7 @@ def add_readout_seqs_to_probes_of_transcript_random(probe_table:pd.core.frame.Da
     for ob in on_bits:
         on_bit_dict[ob] = readout_seqs[readout_seqs['on-bit'] == ob].iloc[0]['sequence']
 
-    assert(len(on_bits) >= N_readout_per_probe)
+    assert(len(on_bits) >= N_readout_per_probe or each_probe_1_on_bit)
         
     # Randomly add readout sequences to all probes
     probe_barcodes = []
