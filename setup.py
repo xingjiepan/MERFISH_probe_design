@@ -11,7 +11,13 @@ setup(
     packages=[
         'MERFISH_probe_design'    
     ],
-    description='A python pipeline for MERFISH probe design.',
+    install_requires=[
+        'numpy',
+        'matplotlib',
+        'seaborn',
+        'biopython',
+    ],
+    description='A python3 pipeline for MERFISH probe design.',
     long_description=open('README.md').read(),
     classifiers=[
         'Programming Language :: Python :: 3',
