@@ -27,7 +27,8 @@ def on_bits_to_barcodes(on_bits:list, barcode_length:int):
 
 def add_readout_seqs_to_probes_of_transcript_random(probe_table:pd.core.frame.DataFrame, 
                                                     readout_seqs:pd.core.frame.DataFrame,
-                                     barcode:str, N_readout_per_probe:int, spacer:str=''):
+                                     barcode:str, N_readout_per_probe:int, spacer:str='',
+                                     each_probe_1_on_bit:bool=False):
     '''Add readout sequences to probes in a table by randomly choose
     on-bits for this transcript.
     Arguments:
@@ -36,6 +37,7 @@ def add_readout_seqs_to_probes_of_transcript_random(probe_table:pd.core.frame.Da
         barcode: The barcode of this transcript.
         N_readout_per_probe: Number of readout sequences to be added to each probe.
         spacer: The sequence to be added between readout sequences and target sequences.
+        each_probe_1_on_bit: Force each probe to have only one on-bit.
     Return:
         The updated table.
     '''
@@ -57,7 +59,11 @@ def add_readout_seqs_to_probes_of_transcript_random(probe_table:pd.core.frame.Da
     for i in range(probe_table.shape[0]):
         
         # Choose on-bits
-        probe_on_bits = np.random.choice(on_bits, N_readout_per_probe, replace=False)
+        if each_probe_1_on_bit:
+            probe_on_bits = [np.random.choice(on_bits)] * N_readout_per_probe
+        else:
+            probe_on_bits = np.random.choice(on_bits, N_readout_per_probe, replace=False)
+
         probe_barcodes.append(on_bits_to_barcodes(probe_on_bits, len(barcode)))
         
         # Add the readout sequence to the left or right
@@ -74,7 +80,7 @@ def add_readout_seqs_to_probes_of_transcript_random(probe_table:pd.core.frame.Da
                 seq = seq + spacer + ro_seq
         
         sequences.append(seq)
-        
+       
     probe_table['probe_barcode'] = pd.Series(probe_barcodes, index=probe_table.index)
     probe_table['target_readout_sequence'] = pd.Series(sequences, index=probe_table.index)
     print(f'Added readout sequences to {probe_table.shape[0]} probes.')
@@ -83,7 +89,8 @@ def add_readout_seqs_to_probes_of_transcript_random(probe_table:pd.core.frame.Da
 def add_readout_seqs_to_probes_random(probe_dict:dict, readout_seqs:pd.core.frame.DataFrame,
                                      barcode_table:pd.core.frame.DataFrame,
                                      N_readout_per_probe:int, spacer:str='',
-                                     gene_id_key='name', n_threads=1):
+                                     gene_id_key='name', n_threads=1,
+                                     each_probe_1_on_bit:bool=False):
     '''Add readout sequences to probes by randomly choose on-bits.
     Arguments:
         probe_dict: The probe dictionary. The dataframes must have the "target_sequence" column.
@@ -92,6 +99,7 @@ def add_readout_seqs_to_probes_random(probe_dict:dict, readout_seqs:pd.core.fram
         N_readout_per_probe: Number of readout sequences to be added to each probe.
         spacer: The sequence to be added between readout sequences and target sequences.
         gene_id_key: The column name in the barcode table to specify genes. Should be "name" or "id".
+        each_probe_1_on_bit: Force each probe to have only one on-bit.
     '''
     # Iterate through all genes and get the arguments for parallel processing
     ks = []
@@ -104,8 +112,8 @@ def add_readout_seqs_to_probes_random(probe_dict:dict, readout_seqs:pd.core.fram
         # Add readout sequences for all its transcripts
         for tk in probe_dict[gk].keys():
             ks.append((gk, tk))
-            args.append([probe_dict[gk][tk], readout_seqs, barcode, N_readout_per_probe, spacer])
-    
+            args.append([probe_dict[gk][tk], readout_seqs, barcode, N_readout_per_probe, spacer, each_probe_1_on_bit])
+   
     # Add readout probes in parallel
     with Pool(n_threads) as p:
         results = p.starmap(add_readout_seqs_to_probes_of_transcript_random, args)
