@@ -73,23 +73,32 @@ def write_merlin_codebook(codebook_file:str, version:str, codebook_name:str, bit
         for i in range(len(gene_names)):
             f.write(f'{gene_names[i]}, {transcript_names[i]}, {barcode_str_list[i]}\n')
 
-def load_transcriptome(transcripts_fasta_file:str, fpkm_tracking_file:str):
-    '''Load the transcriptome into a pandas data frame.'''
+def load_transcriptome(transcripts_fasta_file:str, fpkm_tracking_file:str=None):
+    '''Load the transcriptome into a pandas data frame.
+    If the FPKM tracking file is not provided, set all FPKMs to be 1.
+    '''
     
     # Load the transcripts
     transcripts = load_fasta_into_df(transcripts_fasta_file)
     print(f'Loaded {transcripts.shape[0]} transcripts.')
     transcripts.rename(columns={'id':'transcript_id'}, inplace=True)
-    
-    # Load the FPKMs
-    fpkms = pd.read_csv(fpkm_tracking_file, sep='\t')
-    print(f'Loaded FPKMs for {fpkms.shape[0]} transcripts of {len(pd.unique(fpkms["gene_id"]))} genes.')
-    fpkms.rename(columns={'tracking_id':'transcript_id'}, inplace=True)
-    
-    # Merge the two data frames
-    transcriptome = transcripts.merge(fpkms, how='inner', on='transcript_id')
-    print(f'Kept {transcriptome.shape[0]} transcripts of {len(pd.unique(transcriptome["gene_id"]))} genes after merging.')
-    
+   
+    if fpkm_tracking_file is not None:
+        # Load the FPKMs
+        fpkms = pd.read_csv(fpkm_tracking_file, sep='\t')
+        print(f'Loaded FPKMs for {fpkms.shape[0]} transcripts of {len(pd.unique(fpkms["gene_id"]))} genes.')
+        fpkms.rename(columns={'tracking_id':'transcript_id'}, inplace=True)
+        
+        # Merge the two data frames
+        transcriptome = transcripts.merge(fpkms, how='inner', on='transcript_id')
+        print(f'Kept {transcriptome.shape[0]} transcripts of {len(pd.unique(transcriptome["gene_id"]))} genes after merging.')
+   
+    else:
+        transcripts['FPKM'] = [1] * transcripts.shape[0]
+        transcripts['gene_id'] = pd.Series(dtype=str)
+        transcripts['gene_short_name'] = pd.Series(dtype=str)
+        transcriptome = transcripts
+
     return transcriptome
 
 def load_primers(forward_primer_file:str, reverse_primer_file:str):
