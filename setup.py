@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(
     name='MERFISH_probe_design',
@@ -8,9 +8,7 @@ setup(
     author='Xingjie Pan',
     author_email='xingjiepan@gmail.com',
     url='https://github.com/xingjiepan/MERFISH_probe_design',
-    packages=[
-        'MERFISH_probe_design'    
-    ],
+    packages=setuptools.find_packages(include=['MERFISH_probe_design*']),
     install_requires=[
         'numpy',
         'matplotlib',
