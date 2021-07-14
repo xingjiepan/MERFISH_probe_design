@@ -48,39 +48,50 @@ def add_readout_seqs_to_probes_of_transcript_random(probe_table:pd.core.frame.Da
     on_bits = barcode_to_on_bits(barcode)
     on_bit_dict = {}
     for ob in on_bits:
-        on_bit_dict[ob] = readout_seqs[readout_seqs['on-bit'] == ob].iloc[0]['sequence']
+        entry = readout_seqs[readout_seqs['on-bit'] == ob].iloc[0]
+        on_bit_dict[ob] = (entry['id'], entry['sequence'])
 
-    assert(len(on_bits) >= N_readout_per_probe or each_probe_1_on_bit)
-        
     # Randomly add readout sequences to all probes
     probe_barcodes = []
+    readout_probe_names = []
     sequences = []
     
     for i in range(probe_table.shape[0]):
         
         # Choose on-bits
+        # Add the same readout probes if each_probe_1_on_bit is True
         if each_probe_1_on_bit:
             probe_on_bits = [np.random.choice(on_bits)] * N_readout_per_probe
-        else:
+        # Randomly choose readout probes without replacement if there are more possible probes than N_readout_per_probe
+        elif len(on_bits) >= N_readout_per_probe:
             probe_on_bits = np.random.choice(on_bits, N_readout_per_probe, replace=False)
+        # Randomly choose readout probes with replacement
+        else:
+            probe_on_bits = np.random.choice(on_bits, N_readout_per_probe, replace=True)
 
         probe_barcodes.append(on_bits_to_barcodes(probe_on_bits, len(barcode)))
         
         # Add the readout sequence to the left or right
         seq = probe_table.iloc[i]['target_sequence']
+        ro_names = ''
 
         n_left = np.random.choice([np.floor(N_readout_per_probe / 2), np.floor((N_readout_per_probe + 1) / 2)])
         
         for j, ob in enumerate(probe_on_bits):
-            ro_seq = on_bit_dict[ob]
+            ro_name = on_bit_dict[ob][0] 
+            ro_seq = on_bit_dict[ob][1]
             
             if j < n_left:
+                ro_names = ro_name + ':' + ro_names 
                 seq = ro_seq + spacer + seq
             else:
+                ro_names = ro_names + ':' + ro_name 
                 seq = seq + spacer + ro_seq
-        
-        sequences.append(seq)
        
+        readout_probe_names.append(ro_names)
+        sequences.append(seq)
+    
+    probe_table['readout_names'] = pd.Series(readout_probe_names, index=probe_table.index)
     probe_table['probe_barcode'] = pd.Series(probe_barcodes, index=probe_table.index)
     probe_table['target_readout_sequence'] = pd.Series(sequences, index=probe_table.index)
     print(f'Added readout sequences to {probe_table.shape[0]} probes.')
