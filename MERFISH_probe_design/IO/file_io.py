@@ -66,7 +66,7 @@ def write_merlin_codebook(codebook_file:str, version:str, codebook_name:str, bit
         # Write the header
         f.write(f'version, {version}\n')
         f.write(f'codebook_name, {codebook_name}\n')
-        f.write(f'bit_names {", ".join(bit_names)}\n')
+        f.write(f'bit_names, {", ".join(bit_names)}\n')
         f.write('name, id, barcode\n')
 
         # Write the genes
