@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from multiprocessing import Pool
+
 import numpy as np
 import pandas as pd
 from Bio.SeqUtils import GC
@@ -91,8 +93,16 @@ def calc_tm_JM(sequence:str, monovalentSalt:float=0.3, probeConc:float=5e-9):
 
     return H*1000 / (S + 1.9872 * np.log(probeConc)) - 273.15;
 
-def calc_tm_JM_for_probe_dict(probe_dict:pd.core.frame.DataFrame, monovalentSalt:float, probe_conc:float=1,
-        column_key_seq:str='target_sequence', column_key_write='target_Tm'):
+def calc_tm_JM_for_transcript(df, monovalentSalt, probe_conc, column_key_seq, column_key_write):
+    tms = []
+    for seq in df[column_key_seq]:
+        tms.append(calc_tm_JM(seq, monovalentSalt, probe_conc))
+
+    df[column_key_write] = pd.Series(tms, index=df.index)
+    return df
+
+def calc_tm_JM_for_probe_dict(probe_dict:dict, monovalentSalt:float, probe_conc:float=1,
+        column_key_seq:str='target_sequence', column_key_write='target_Tm', n_threads=1):
     '''Calculate melting temperatures of the target sequences of the probe dictionary.
     Use the TM calculation method in JM's original MATLAB code.
     Arguments:
@@ -100,12 +110,21 @@ def calc_tm_JM_for_probe_dict(probe_dict:pd.core.frame.DataFrame, monovalentSalt
         fmd_percentile: the percentile of formamide.
         probe_conc: concentration of the individual probes in nM.
     '''
+    # Iterate through all genes and get the arguments for parallel processing
+    ks = []
+    args = []
+    
     for gk in probe_dict.keys():
         for tk in probe_dict[gk].keys():
-            
-            tms = []
-            for seq in probe_dict[gk][tk][column_key_seq]:
-                tms.append(calc_tm_JM(seq, monovalentSalt, probe_conc))
-
-            probe_dict[gk][tk][column_key_write] = pd.Series(tms, index=probe_dict[gk][tk].index)
+            ks.append((gk, tk))
+            args.append([probe_dict[gk][tk], monovalentSalt, probe_conc, column_key_seq, column_key_write])
+   
+    # Add readout probes in parallel
+    with Pool(n_threads) as p:
+        results = p.starmap(calc_tm_JM_for_transcript, args)
+    
+    # Update the probe dictionary
+    for i, kk in enumerate(ks):
+        gk, tk = kk
+        probe_dict[gk][tk] = results[i]
 

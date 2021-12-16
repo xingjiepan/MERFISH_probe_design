@@ -164,7 +164,8 @@ def calc_OTs(probe_dict:dict, ottable:OTTable, seq_key:str, ot_key:str, K:int):
         ot_key: The column key to save the off-targets.
         K: The size of K-mers for the OTTable.
     '''
-    for gk in probe_dict.keys():
+    for i, gk in enumerate(probe_dict.keys()):
+        print(f'Calculate OTs for {i}/{len(probe_dict.keys())} genes.')
         for tk in probe_dict[gk].keys():
             calc_OTs_df(probe_dict[gk][tk], ottable, seq_key, ot_key, K)
 
