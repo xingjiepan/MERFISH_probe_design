@@ -21,7 +21,7 @@ def bit_coverage(code_list:list, code_length):
 
     return coverages
 
-def generate_one_code_set(n_bits, n_on_bits, min_hamming_distance, randomize):
+def generate_one_code_set(n_bits, n_on_bits, min_hamming_distance, randomize, verbose):
     '''Randomly generate one set of codes.'''
     # Re-seed the generator for each thread
     np.random.seed()
@@ -46,13 +46,15 @@ def generate_one_code_set(n_bits, n_on_bits, min_hamming_distance, randomize):
             chosen_codes.append(c)
     
     coverages = bit_coverage(chosen_codes, n_bits)
-    print(f'Generated code set: len={len(chosen_codes)}, var={np.var(coverages)}')
+
+    if verbose:
+        print(f'Generated code set: len={len(chosen_codes)}, var={np.var(coverages)}')
     
     return chosen_codes
 
 
 def generate_modified_hamming_codes(n_bits:int, n_on_bits:int, min_hamming_distance:int, 
-        min_codebook_size:int=0, n_rand_repeats:int=500, n_threads:int=1):
+        min_codebook_size:int=0, n_rand_repeats:int=500, n_threads:int=1, verbose=True):
     '''Generate code sets and pick the best one.
     The code sets include a regular one plus n_rand_repeats random sets.
     '''
@@ -71,7 +73,7 @@ def generate_modified_hamming_codes(n_bits:int, n_on_bits:int, min_hamming_dista
     # Generate code sets in parallel
     n_repeats = 1 + n_rand_repeats
 
-    args = [[n_bits, n_on_bits, min_hamming_distance, True] for i in range(n_repeats)]
+    args = [[n_bits, n_on_bits, min_hamming_distance, True, verbose] for i in range(n_repeats)]
     args[0][3] = False # Don't randomize the first set
 
     with Pool(n_threads) as p:
