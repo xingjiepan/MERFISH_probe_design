@@ -32,7 +32,21 @@ class OTTable (dict):
             ottable = pickle.load(f)
         print(f'Load the OTTable from {file_name}.')
         return ottable
-
+    
+    def total_count(self, seq, keylen:int):
+        """Function to parse sequence given certain key-length, and get total counts"""
+        _counts = []
+        if len(seq) < keylen:
+            _counts = [0]
+        else:
+            for _i in range(0, len(seq) - keylen + 1):
+                _seq_fragment = seq[_i:_i+keylen]
+                _counts.append(self[_seq_fragment])
+        # sum
+        _total_count = np.sum(_counts)
+        return _total_count
+    
+    
 
 def get_OTTable_for_sequences(sequences:list, K:int, weights:list=[], verbose:bool=False):
     '''Get an OTTable for a list of sequences.
