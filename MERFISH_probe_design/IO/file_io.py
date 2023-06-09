@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import re
 import pandas as pd
 from Bio import SeqIO
 from Bio.Seq import reverse_complement
