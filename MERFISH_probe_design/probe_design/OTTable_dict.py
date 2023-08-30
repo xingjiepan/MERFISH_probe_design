@@ -32,21 +32,23 @@ class OTTable (dict):
             ottable = pickle.load(f)
         print(f'Load the OTTable from {file_name}.')
         return ottable
-    
-    def total_count(self, seq, keylen:int):
+
+    def calculate_count(self, seq, keylen:int):
         """Function to parse sequence given certain key-length, and get total counts"""
         _counts = []
         if len(seq) < keylen:
             _counts = [0]
         else:
             for _i in range(0, len(seq) - keylen + 1):
-                _seq_fragment = seq[_i:_i+keylen]
+                _seq_fragment = seq[_i:_i+keylen].upper()
                 _counts.append(self[_seq_fragment])
         # sum
-        _total_count = np.sum(_counts)
-        return _total_count
+        return _counts
     
-    
+    def total_count(self, seq, keylen:int):
+        """Function to parse sequence given certain key-length, and get total counts"""
+        _counts = self.calculate_count(seq=seq, keylen=keylen)
+        return np.sum(_counts)
 
 def get_OTTable_for_sequences(sequences:list, K:int, weights:list=[], verbose:bool=False):
     '''Get an OTTable for a list of sequences.
@@ -70,9 +72,9 @@ def get_OTTable_for_sequences(sequences:list, K:int, weights:list=[], verbose:bo
 
         # Find all K-mers and add to the OTTable
         for j in range(len(seq) - K + 1): 
-            table.add_seq(seq[j:j+K], w)
+            table.add_seq(seq[j:j+K].upper(), w)
 
-        if verbose and (i + 1) % 1000 == 0:
+        if verbose and (i + 1) % 10000 == 0:
             print(f'Processed {i + 1}/{len(sequences)} sequences.')
 
     return table
