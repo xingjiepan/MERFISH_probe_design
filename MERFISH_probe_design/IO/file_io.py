@@ -3,7 +3,8 @@
 import pandas as pd
 from Bio import SeqIO
 from Bio.Seq import reverse_complement
-
+import re
+ensembl_full_regexp = r'([a-zA-Z0-9\.]+) ([a-zA-Z]+) (chromosome|scaffold):([a-zA-Z0-9\.\:]+)\:(1|\-1) gene:([a-zA-Z0-9\.]+) gene_biotype:([a-zA-Z0-9\.\_]+) (.+)'
 
 def load_fasta_into_df(fasta_file:str, load_rc:bool=False):
     '''Load a fasta file into a pandas data frame.'''
