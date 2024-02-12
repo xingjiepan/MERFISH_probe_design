@@ -244,6 +244,7 @@ def calc_specificity(probe_dict:dict, ottable:OTTable, gene_ottable_dict:dict, t
         K: The size of K-mers for the OTTable.
     '''
     for gk in probe_dict.keys():
+        #print(gk)
         for tk in probe_dict[gk].keys():
             # Set the specificities to be zeros if the transcript do not express
             if 0 == transcript_fpkms[tk]:
@@ -260,8 +261,14 @@ def calc_specificity(probe_dict:dict, ottable:OTTable, gene_ottable_dict:dict, t
                     speci_K_mer = []
                     isospeci_K_mer = []
                     for i in range(len(seq) - K + 1):
-                        speci_K_mer.append(gene_ottable_dict[gk][seq[i:i+K]] / ottable[seq[i:i+K]])
-                        isospeci_K_mer.append(transcript_fpkms[tk] / gene_ottable_dict[gk][seq[i:i+K]])
+                        if ottable[seq[i:i+K]] <= 0:
+                            speci_K_mer.append(1)
+                        else:
+                            speci_K_mer.append(gene_ottable_dict[gk][seq[i:i+K]] / ottable[seq[i:i+K]])
+                        if gene_ottable_dict[gk][seq[i:i+K]] <= 0:
+                            isospeci_K_mer.append(1)
+                        else:
+                            isospeci_K_mer.append(transcript_fpkms[tk] / gene_ottable_dict[gk][seq[i:i+K]])
 
                     # The specificity of the sequence is the average of its K-mer specificities
                     specificities.append(np.mean(speci_K_mer))
