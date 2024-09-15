@@ -80,7 +80,6 @@ def add_readout_seqs_to_probes_of_transcript_random(probe_table:pd.core.frame.Da
         #n_left = np.random.choice([np.floor(N_readout_per_probe / 2), np.floor((N_readout_per_probe + 1) / 2)]) # randomly assign a half(+-0.5) to the left or right
         #make n_left not random:
         n_left = np.floor(N_readout_per_probe / 2)
-        print(row['shift'])
         
         for j, ob in enumerate(probe_on_bits):
             
@@ -101,6 +100,7 @@ def add_readout_seqs_to_probes_of_transcript_random(probe_table:pd.core.frame.Da
     probe_table['probe_barcode'] = pd.Series(probe_barcodes, index=probe_table.index)
     probe_table['target_readout_sequence'] = pd.Series(sequences, index=probe_table.index)
     print(f'Added readout sequences to {probe_table.shape[0]} probes.')
+    
     return probe_table
 
 def add_readout_seqs_to_probes_random(probe_dict:dict, readout_seqs:pd.core.frame.DataFrame,

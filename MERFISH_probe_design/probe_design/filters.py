@@ -14,8 +14,10 @@ def filter_probe_dict_by_metric(probe_dict:pd.core.frame.DataFrame, column_key:s
     for gk in probe_dict.keys():
         print(gk)
         for tk in probe_dict[gk].keys():
-            new_df = probe_dict[gk][tk][probe_dict[gk][tk][column_key].between(
-                lower_bound, upper_bound, inclusive=False)]
+            new_df= probe_dict[gk][tk][
+                probe_dict[gk][tk][column_key].gt(lower_bound) & 
+                probe_dict[gk][tk][column_key].lt(upper_bound)
+            ]
             
             print(f'\t{tk}: {new_df.shape[0]} / {probe_dict[gk][tk].shape[0]} probes passed the filter {lower_bound} < {column_key} <  {upper_bound}.')
             probe_dict[gk][tk] = new_df
