@@ -14,8 +14,10 @@ def filter_probe_dict_by_metric(probe_dict:pd.core.frame.DataFrame, column_key:s
     for gk in probe_dict.keys():
         print(gk)
         for tk in probe_dict[gk].keys():
-            new_df = probe_dict[gk][tk][probe_dict[gk][tk][column_key].between(
-                lower_bound, upper_bound, inclusive=False)]
+            new_df= probe_dict[gk][tk][
+                probe_dict[gk][tk][column_key].gt(lower_bound) & 
+                probe_dict[gk][tk][column_key].lt(upper_bound)
+            ]
             
             print(f'\t{tk}: {new_df.shape[0]} / {probe_dict[gk][tk].shape[0]} probes passed the filter {lower_bound} < {column_key} <  {upper_bound}.')
             probe_dict[gk][tk] = new_df
@@ -52,7 +54,7 @@ def calc_tm_for_probe_dict(probe_dict:pd.core.frame.DataFrame, Na_conc:float, fm
                 
                 tms.append(MeltingTemp.chem_correction(tm_raw, fmd=fmd_percentile))
 
-            probe_dict[gk][tk][column_key_write] = pd.Series(tms, index=probe_dict[gk][tk].index)
+            probe_dict[gk][tk][column_key_write] = pd.Series(tms, index=probe_dict[gk][tk].index, dtype=np.float32)
 
 def calc_tm_JM(sequence:str, monovalentSalt:float=0.3, probeConc:float=5e-9):
     '''TM calculation used in JM's original MATLAB code.
