@@ -79,7 +79,9 @@ def get_OTTable_for_sequences(sequences:list, K:int, weights:list=[], verbose:bo
 
     return table
 
-def get_OTTable_for_rtRNAs(ncRNAs:pd.core.frame.DataFrame, K:int):
+def get_OTTable_for_rtRNAs(ncRNAs:pd.core.frame.DataFrame, 
+                           K:int, 
+                           search_column:str='description'):
     '''Get an OTTable for the rRNAs and tRNAs given a data frame of non-coding RNAs.
     Arguments:
         ncRNAs: A data frame of non-coding RNAs.
@@ -90,9 +92,13 @@ def get_OTTable_for_rtRNAs(ncRNAs:pd.core.frame.DataFrame, K:int):
 
     rt_sequences = []
     for index, row in ncRNAs.iterrows():
-        match = re.search(r'gene_biotype:(\S+) ', row['description'])
+        match = re.search(r'gene_biotype:(\S+) ', row[search_column])
         if match is not None and match.group(1) in biotypes_to_keep:
             rt_sequences.append(row['sequence'])
+        else:
+            match2 = re.search(r'(\S+)', row[search_column])
+            if match2 is not None and match2.group(1) in biotypes_to_keep:
+                rt_sequences.append(row['sequence'])
     
     print(f'Found {len(rt_sequences)} rRNAs/tRNAs from {ncRNAs.shape[0]} non-coding RNAs.')
 
