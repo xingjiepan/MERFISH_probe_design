@@ -113,12 +113,12 @@ def load_transcriptome(transcripts_fasta_file:str, fpkm_tracking_file:str=None, 
             gene_id_list, gene_name_list = [], []
             print(len(transcripts))
             for _str in transcripts['description']:
-                _gene_id_match = re.search('gene:([a-zA-Z0-9\.]+) ', _str)
+                _gene_id_match = re.search(r'gene:([a-zA-Z0-9\.]+) ', _str)
                 if _gene_id_match:
                     gene_id_list.append(_gene_id_match.groups()[0])
                 else:
                     gene_id_list.append(None)
-                _gene_name_match = re.search('gene_symbol:([a-zA-Z0-9\.]+) ', _str)
+                _gene_name_match = re.search(r'gene_symbol:([a-zA-Z0-9\.]+) ', _str)
                 if _gene_name_match:
                     gene_name_list.append(_gene_name_match.groups()[0])
                 else:
