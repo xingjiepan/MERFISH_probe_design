@@ -9,7 +9,7 @@ from Bio.SeqUtils import MeltingTemp
 
 
 def filter_probe_dict_by_metric(probe_dict:pd.core.frame.DataFrame, column_key:str, 
-        lower_bound:float=-np.Inf, upper_bound:float=np.Inf):
+        lower_bound:float=-np.inf, upper_bound:float=np.inf):
     '''Filter the probe dictionary by a metric.'''
     for gk in probe_dict.keys():
         print(gk)
