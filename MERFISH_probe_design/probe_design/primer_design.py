@@ -24,3 +24,36 @@ def add_primer_sequences(probe_dict:dict, seq_upstream:str, seq_downstream:str,
                 output_seqs.append(seq_upstream + seq + seq_downstream)
 
             probe_dict[gk][tk][output_column] = pd.Series(output_seqs, index=probe_dict[gk][tk].index)
+
+
+def add_upstream_sequence(
+    probe_dict:dict,
+    sequence:str,
+    input_column:str='target_sequence',
+    output_column:str='target_sequence_5+',
+    ):
+    '''Add the upstream sequence to a probe dictionary.'''
+    for gk in probe_dict.keys():
+        for tk in probe_dict[gk].keys():
+            output_seqs = []
+
+            for seq in probe_dict[gk][tk][input_column]:
+                output_seqs.append(sequence + seq)
+
+            probe_dict[gk][tk][output_column] = pd.Series(output_seqs, index=probe_dict[gk][tk].index)
+
+def add_downstream_sequence(
+    probe_dict:dict,
+    sequence:str,
+    input_column:str='target_sequence',
+    output_column:str='target_sequence_3+',
+    ):
+    '''Add the downstream sequence to a probe dictionary.'''
+    for gk in probe_dict.keys():
+        for tk in probe_dict[gk].keys():
+            output_seqs = []
+
+            for seq in probe_dict[gk][tk][input_column]:
+                output_seqs.append(seq + sequence)
+
+            probe_dict[gk][tk][output_column] = pd.Series(output_seqs, index=probe_dict[gk][tk].index)
