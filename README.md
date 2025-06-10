@@ -6,5 +6,5 @@ Clone the repository into desired location.
 
 Install the package by
 ```
-pip install -e .
+pip install -e MERFISH_probe_design
 ```
