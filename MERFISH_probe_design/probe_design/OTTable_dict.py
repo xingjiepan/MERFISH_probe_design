@@ -187,7 +187,8 @@ def calc_OTs(probe_dict:dict, ottable:OTTable, seq_key:str, ot_key:str, K:int):
         K: The size of K-mers for the OTTable.
     '''
     for i, gk in enumerate(probe_dict.keys()):
-        print(f'Calculate OTs for {i}/{len(probe_dict.keys())} genes.')
+        if len(probe_dict) < 100 or i % (len(probe_dict) // 100) == 0:
+            print(f'Calculate OTs for {i}/{len(probe_dict.keys())} genes.')
         for tk in probe_dict[gk].keys():
             calc_OTs_df(probe_dict[gk][tk], ottable, seq_key, ot_key, K)
 
