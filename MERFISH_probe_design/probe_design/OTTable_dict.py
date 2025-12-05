@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 
 from Bio.Seq import reverse_complement
+from collections import Counter
 
-
-class OTTable (dict):
+class OTTable (Counter):
     '''A python dictionary based implementation of the off-target table.'''
     def __missing__ (self, key):
         return 0
@@ -74,7 +74,7 @@ def get_OTTable_for_sequences(sequences:list, K:int, weights:list=[], verbose:bo
         for j in range(len(seq) - K + 1): 
             table.add_seq(seq[j:j+K].upper(), w)
 
-        if verbose and (i + 1) % 10000 == 0:
+        if verbose and (i + 1) % 100000 == 0:
             print(f'Processed {i + 1}/{len(sequences)} sequences.')
 
     return table
@@ -251,7 +251,6 @@ def calc_specificity(probe_dict:dict, ottable:OTTable, gene_ottable_dict:dict, t
         K: The size of K-mers for the OTTable.
     '''
     for gk in probe_dict.keys():
-        #print(gk)
         for tk in probe_dict[gk].keys():
             # Set the specificities to be zeros if the transcript do not express
             if 0 == transcript_fpkms[tk]:
