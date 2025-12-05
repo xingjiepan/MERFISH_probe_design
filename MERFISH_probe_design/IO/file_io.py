@@ -57,7 +57,7 @@ def load_merlin_codebook(codebook_file:str):
             else:
                 barcode_dict['name'].append(sl[0].strip())
                 barcode_dict['id'].append(sl[1].strip())
-                barcode_dict['barcode_str'].append(sl[2].strip())
+                barcode_dict['barcode_str'].append(''.join(sl[2:]).strip())
     
     return version, codebook_name, bit_names, pd.DataFrame.from_dict(barcode_dict)
 
