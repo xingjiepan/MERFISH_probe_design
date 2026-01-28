@@ -8,12 +8,13 @@ authors = [{name = "Xingjie Pan"}, {name = "Pu Zheng"}]
 version = "0.0.0"
 description = "A python3 pipeline for MERFISH probe design."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 dependencies = [
-    "numpy",
-    "matplotlib",
-    "seaborn",
-    "biopython",
+    "numpy==2.4.1",
+    "pandas==3.0.0",
+    "matplotlib==3.10.8",
+    "seaborn==0.13.2",
+    "biopython==1.86",
 ]
 
 [tool.setuptools.packages.find]
