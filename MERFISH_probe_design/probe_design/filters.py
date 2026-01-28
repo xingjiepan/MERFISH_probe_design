@@ -4,9 +4,19 @@ from multiprocessing import Pool
 
 import numpy as np
 import pandas as pd
-from Bio.SeqUtils import GC
+
+try:
+    from Bio.SeqUtils import gc_fraction
+    def GC(sequence):
+        return 100 * gc_fraction(sequence, ambiguous="ignore")
+except ImportError:
+    # Older versions have this:
+    from Bio.SeqUtils import GC
+
 from Bio.SeqUtils import MeltingTemp
 
+# GLOBAL VARIABLES
+from . import seq2int
 
 def filter_probe_dict_by_metric(probe_dict:pd.core.frame.DataFrame, column_key:str, 
         lower_bound:float=-np.Inf, upper_bound:float=np.Inf):
@@ -54,7 +64,7 @@ def calc_tm_for_probe_dict(probe_dict:pd.core.frame.DataFrame, Na_conc:float, fm
                 
                 tms.append(MeltingTemp.chem_correction(tm_raw, fmd=fmd_percentile))
 
-            probe_dict[gk][tk][column_key_write] = pd.Series(tms, index=probe_dict[gk][tk].index, dtype=np.float32)
+            probe_dict[gk][tk][column_key_write] = pd.Series(tms, index=probe_dict[gk][tk].index)
 
 def calc_tm_JM(sequence:str, monovalentSalt:float=0.3, probeConc:float=5e-9):
     '''TM calculation used in JM's original MATLAB code.
@@ -115,12 +125,10 @@ def calc_tm_JM_for_probe_dict(probe_dict:dict, monovalentSalt:float, probe_conc:
     # Iterate through all genes and get the arguments for parallel processing
     ks = []
     args = []
-    
     for gk in probe_dict.keys():
         for tk in probe_dict[gk].keys():
             ks.append((gk, tk))
             args.append([probe_dict[gk][tk], monovalentSalt, probe_conc, column_key_seq, column_key_write])
-   
     # Add readout probes in parallel
     with Pool(n_threads) as p:
         results = p.starmap(calc_tm_JM_for_transcript, args)
@@ -130,3 +138,74 @@ def calc_tm_JM_for_probe_dict(probe_dict:dict, monovalentSalt:float, probe_conc:
         gk, tk = kk
         probe_dict[gk][tk] = results[i]
 
+## Add functions related to Flex probe design:
+# calculate GC for left 25 bases:
+
+def calc_GC_for_left_probe_dict(
+    probe_dict:pd.core.frame.DataFrame, 
+    left_length:int=25,
+    column_key_seq:str='target_sequence',
+    column_key_write='target_GC_left'):
+    """Calculate GC content of the left part of the sequences under the column_key_seq column in the probe dictionary.
+    The GC content is reported in percentile.
+    """
+    for gk in probe_dict.keys():
+        for tk in probe_dict[gk].keys():
+            gcs = []
+            for seq in probe_dict[gk][tk][column_key_seq]:
+                gcs.append(GC(seq[:left_length]))
+
+            probe_dict[gk][tk][column_key_write+str(left_length)] = pd.Series(gcs, index=probe_dict[gk][tk].index)
+    
+def calc_GC_for_right_probe_dict(
+    probe_dict:pd.core.frame.DataFrame, 
+    right_length:int=25,
+    column_key_seq:str='target_sequence',
+    column_key_write='target_GC_right'):
+    """Calculate GC content of the right part of the sequences under the column_key_seq column in the probe dictionary.
+    The GC content is reported in percentile.
+    """
+    for gk in probe_dict.keys():
+        for tk in probe_dict[gk].keys():
+            gcs = []
+            for seq in probe_dict[gk][tk][column_key_seq]:
+                gcs.append(GC(seq[-right_length:]))
+
+            probe_dict[gk][tk][column_key_write+str(right_length)] = pd.Series(gcs, index=probe_dict[gk][tk].index)  
+
+def calc_base_at_location_probe_dict(
+    probe_dict:pd.core.frame.DataFrame, 
+    location:int=25,
+    column_key_seq:str='target_sequence',
+    column_key_write='target_base_at_location'):
+    """Calculate the base at a specific location in the sequences under the column_key_seq column in the probe dictionary.
+    The base is reported as a string.
+    """
+    
+    for gk in probe_dict.keys():
+        for tk in probe_dict[gk].keys():
+            bases = []
+            for seq in probe_dict[gk][tk][column_key_seq]:
+                bases.append(seq2int[seq[location].upper()])
+            probe_dict[gk][tk][column_key_write+str(location)] = pd.Series(bases, index=probe_dict[gk][tk].index)
+
+# function to remove probes with homopolymers:
+def find_homopolymer(seq, max_length=4):
+    """Check if the sequence has a homopolymer longer than max_length."""
+    for base in 'ATCG':
+        if base * max_length in seq.upper():
+            return seq2int[base]  # Return the base if a homopolymer is found
+    return 0
+def detect_homopolymer_probe_dict(
+    probe_dict:pd.core.frame.DataFrame, 
+    column_key_seq:str='target_sequence',    
+    min_length:int=5,
+    column_key_write='has_homopolymer',
+    ):
+    """Remove probes with homopolymers longer than min_length."""
+    
+    for gk in probe_dict.keys():
+        for tk in probe_dict[gk].keys():
+            seqs = probe_dict[gk][tk][column_key_seq]
+            probe_dict[gk][tk][column_key_write+str(min_length)] = seqs.apply(
+                lambda seq: find_homopolymer(seq, min_length))

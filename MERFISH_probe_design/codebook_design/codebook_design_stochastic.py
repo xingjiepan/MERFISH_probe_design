@@ -8,7 +8,8 @@ modified by Xingjie Pan.
 from multiprocessing import Pool
 import numpy as np
 import matplotlib.pyplot as plt
-
+# import logging package:
+import logging
 
 def on_bits_to_binary_code(on_bits:list, code_length:int):
     '''Convert a list of on-bits to a list of binary code.'''
@@ -84,6 +85,8 @@ def optimize_bit_assignments_simulated_annealing(ct_expr:np.ndarray,
 def optimize_bit_assignments_simulated_annealing_parallel(ct_expr:np.ndarray, 
         ct_weights:np.ndarray, binary_codes:np.ndarray, N_test, N_threads, N_rounds:int=5, N_iter:int=2000):
     '''Run the simulated annealing in parallel.'''
+    logger = logging.getLogger(__name__)
+    logger.info(f'Running simulated annealing with {N_threads} threads and {N_test} tests.')
     args = [[ct_expr, ct_weights, binary_codes, N_rounds, N_iter] for i in range(N_test)]
 
     # Run simulated annealing for N_test times 
@@ -94,6 +97,7 @@ def optimize_bit_assignments_simulated_annealing_parallel(ct_expr:np.ndarray,
         results = p.starmap(optimize_bit_assignments_simulated_annealing, args)
 
     # Return the best result
+    logger.info('Simulated annealing tests finished, selecting the best result.')
     best_id = np.argmin([r[0] for r in results]) 
     return results[best_id]
 

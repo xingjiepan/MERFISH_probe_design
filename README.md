@@ -2,7 +2,9 @@
 A python3 pipeline for MERFISH probe design.
 
 ## Installation
+Clone the repository into desired location. 
+
 Install the package by
 ```
-pip install .
+pip install -e MERFISH_probe_design
 ```

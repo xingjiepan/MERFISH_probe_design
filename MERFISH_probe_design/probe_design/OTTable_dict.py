@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 
 from Bio.Seq import reverse_complement
+from collections import Counter
 
-
-class OTTable (dict):
+class OTTable (Counter):
     '''A python dictionary based implementation of the off-target table.'''
     def __missing__ (self, key):
         return 0
@@ -74,12 +74,14 @@ def get_OTTable_for_sequences(sequences:list, K:int, weights:list=[], verbose:bo
         for j in range(len(seq) - K + 1): 
             table.add_seq(seq[j:j+K].upper(), w)
 
-        if verbose and (i + 1) % 10000 == 0:
+        if verbose and (i + 1) % 100000 == 0:
             print(f'Processed {i + 1}/{len(sequences)} sequences.')
 
     return table
 
-def get_OTTable_for_rtRNAs(ncRNAs:pd.core.frame.DataFrame, K:int):
+def get_OTTable_for_rtRNAs(ncRNAs:pd.core.frame.DataFrame, 
+                           K:int, 
+                           search_column:str='description'):
     '''Get an OTTable for the rRNAs and tRNAs given a data frame of non-coding RNAs.
     Arguments:
         ncRNAs: A data frame of non-coding RNAs.
@@ -90,9 +92,13 @@ def get_OTTable_for_rtRNAs(ncRNAs:pd.core.frame.DataFrame, K:int):
 
     rt_sequences = []
     for index, row in ncRNAs.iterrows():
-        match = re.search(r'gene_biotype:(\S+) ', row['description'])
+        match = re.search(r'gene_biotype:(\S+) ', row[search_column])
         if match is not None and match.group(1) in biotypes_to_keep:
             rt_sequences.append(row['sequence'])
+        else:
+            match2 = re.search(r'(\S+)', row[search_column])
+            if match2 is not None and match2.group(1) in biotypes_to_keep:
+                rt_sequences.append(row['sequence'])
     
     print(f'Found {len(rt_sequences)} rRNAs/tRNAs from {ncRNAs.shape[0]} non-coding RNAs.')
 
@@ -181,7 +187,8 @@ def calc_OTs(probe_dict:dict, ottable:OTTable, seq_key:str, ot_key:str, K:int):
         K: The size of K-mers for the OTTable.
     '''
     for i, gk in enumerate(probe_dict.keys()):
-        print(f'Calculate OTs for {i}/{len(probe_dict.keys())} genes.')
+        if len(probe_dict) < 100 or i % (len(probe_dict) // 100) == 0:
+            print(f'Calculate OTs for {i}/{len(probe_dict.keys())} genes.')
         for tk in probe_dict[gk].keys():
             calc_OTs_df(probe_dict[gk][tk], ottable, seq_key, ot_key, K)
 
@@ -244,7 +251,6 @@ def calc_specificity(probe_dict:dict, ottable:OTTable, gene_ottable_dict:dict, t
         K: The size of K-mers for the OTTable.
     '''
     for gk in probe_dict.keys():
-        #print(gk)
         for tk in probe_dict[gk].keys():
             # Set the specificities to be zeros if the transcript do not express
             if 0 == transcript_fpkms[tk]:
