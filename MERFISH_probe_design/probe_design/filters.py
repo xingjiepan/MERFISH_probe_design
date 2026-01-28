@@ -4,7 +4,15 @@ from multiprocessing import Pool
 
 import numpy as np
 import pandas as pd
-from Bio.SeqUtils import GC
+
+try:
+    from Bio.SeqUtils import gc_fraction
+    def GC(sequence):
+        return 100 * gc_fraction(sequence, ambiguous="ignore")
+except ImportError:
+    # Older versions have this:
+    from Bio.SeqUtils import GC
+
 from Bio.SeqUtils import MeltingTemp
 
 # GLOBAL VARIABLES
