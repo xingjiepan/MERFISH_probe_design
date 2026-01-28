@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "MERFISH_probe_design"
+authors = [{name = "Xingjie Pan"}, {name = "Pu Zheng"}]
+version = "0.0.0"
+description = "A python3 pipeline for MERFISH probe design."
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "seaborn",
+    "biopython",
+]
+
+[tool.setuptools.packages.find]
+include = ["MERFISH_probe_design*"]
