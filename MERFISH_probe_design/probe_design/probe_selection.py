@@ -5,6 +5,38 @@ from multiprocessing import Pool
 import numpy as np
 import pandas as pd
 
+def count_max_non_overlapping_probes(probe_dict:dict):
+    '''Count the maximum number of non-overlapping probes for each transcript
+        in the probe_dict.
+    Arguments:
+        probe_dict: The dictionary of probes.
+    Return:
+        A data frame of the count of max non-overlapping probes
+    '''
+    count_dict = {
+        'gene' : [],
+        'transcript' : [],
+        'n_probes' : [],
+        'n_max_no_overlap_probes' : [],
+    }
+    for gk in probe_dict.keys(): 
+        for tk in probe_dict[gk].keys():
+            probe_df = probe_dict[gk][tk].sort_values('shift')
+
+            current_end = -1
+            n_max_no_overlap_probes = 0
+            for i, row in probe_df.iterrows():
+                if row['shift'] > current_end:
+                    n_max_no_overlap_probes += 1
+                    current_end = row['shift'] + len(row['target_sequence']) - 1
+
+            count_dict['gene'].append(gk)
+            count_dict['transcript'].append(tk)
+            count_dict['n_probes'].append(probe_df.shape[0])
+            count_dict['n_max_no_overlap_probes'].append(n_max_no_overlap_probes)
+
+    return pd.DataFrame(count_dict)
+
 
 def select_probes_greedy_stochastic_one_df(df:pd.core.frame.DataFrame, N_probes_per_transcript:int, N_on_bits:int):
     '''A greedy stochastic method to select probes from one data frame.'''
