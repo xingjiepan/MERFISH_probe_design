@@ -107,6 +107,7 @@ def plot_dot_distribution(ct_expr:np.ndarray, binary_codes:np.ndarray):
 
     fig, ax = plt.subplots()
     im = ax.imshow(np.transpose(dot_distribution), vmin=0)
+    ax.set_aspect(dot_distribution.shape[0] / dot_distribution.shape[1])
     cbar = ax.figure.colorbar(im)
 
     plt.xlabel('Cell type')
