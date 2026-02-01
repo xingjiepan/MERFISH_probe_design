@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''Generate modified Hamming code by randomly choosing codes.
 Multiple people from the Zhuang lab contributed to this version
-including Bogdan Bintu, Po Zheng, Will Allen and Xingjie Pan.
+including Bogdan Bintu, Pu Zheng, Will Allen and Xingjie Pan.
 '''
 import numpy as np
 from itertools import combinations
