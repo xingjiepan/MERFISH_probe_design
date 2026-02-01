@@ -56,7 +56,7 @@ def find_subset_code_even_coverage(code_list:list, code_length:int, N_codes:int,
     by a greedy method. The method is stochastic. Run the underlying
     method N_rounds times and select the one that gives the least variance.
     '''
-    best_var = np.Inf
+    best_var = np.inf
     
     for i in range(N_rounds):
         result = find_subset_code_even_coverage_single_round(code_list, code_length, N_codes)
