@@ -140,11 +140,12 @@ def add_readout_seqs_to_probes_random(probe_dict:dict, readout_seqs:pd.core.fram
         gk, tk = kk
         probe_dict[gk][tk] = results[i]
 
-def add_readout_seqs_to_probes_of_transcript_round_robin(probe_table:pd.core.frame.DataFrame, 
+def add_readout_seqs_to_probes_of_transcript_balanced_random(probe_table:pd.core.frame.DataFrame, 
                                                     readout_seqs:pd.core.frame.DataFrame,
                                      barcode:str, N_readout_per_probe:int, spacer:str='',
                                      each_probe_1_on_bit:bool=False):
-    '''Add readout sequences to probes in a table by a round-robin assignment of on-bits for this transcript.
+    '''Add readout sequences to probes in a table by randomly choose
+    on-bits for this transcript in a balanced way.
     Arguments:
         probe_table: A data frame of probes of a transcript.
         readout_seqs: The data frame of readout sequences with their on-bit positions.
@@ -159,46 +160,61 @@ def add_readout_seqs_to_probes_of_transcript_round_robin(probe_table:pd.core.fra
     np.random.seed()
 
     # Initialize a dictionary that maps the on-bits to readout sequences
-    on_bits = barcode_to_on_bits(barcode)
+    on_bits = np.array(barcode_to_on_bits(barcode))
     on_bit_dict = {}
     for ob in on_bits:
         entry = readout_seqs[readout_seqs['on-bit'] == ob].iloc[0]
         on_bit_dict[ob] = (entry['id'], entry['sequence'])
 
-    # Randomly add readout sequences to all probes
+    # Initialize data structures
     probe_barcodes = []
     readout_probe_names = []
     sequences = []
-
+    bit_usage_counts = np.array([0 for _ in range(len(on_bits))])
+    
     # sort by shift:
     probe_table = probe_table.sort_values(by='shift')
-    counter = 0
-
+    
+    # Randomly add readout sequences to all probes
     for i, row in probe_table.iterrows():
         
         # Choose on-bits
-        probe_on_bits = []
-        for j in range(N_readout_per_probe):
-            probe_on_bits.append(on_bits[counter % len(on_bits)])
-
-            if not each_probe_1_on_bit:
-                counter += 1
-            
+        # Add the same readout probes if each_probe_1_on_bit is True
         if each_probe_1_on_bit:
-            counter += 1
+            allowed_on_bits = on_bits[bit_usage_counts == np.min(bit_usage_counts)]
+            probe_on_bits = [np.random.choice(allowed_on_bits)] * N_readout_per_probe
+        # Randomly choose readout probes without replacement if there are more possible probes than N_readout_per_probe
+        elif len(on_bits) >= N_readout_per_probe:
+            N_candidates = np.sum(bit_usage_counts <= sorted(bit_usage_counts)[N_readout_per_probe - 1])
+            if N_candidates == N_readout_per_probe:
+                probe_on_bits = on_bits[bit_usage_counts <= sorted(bit_usage_counts)[N_readout_per_probe - 1]][:]
+            else:
+                probe_on_bits = list(on_bits[bit_usage_counts < sorted(bit_usage_counts)[N_readout_per_probe - 1]])
+                probe_on_bits += np.random.choice(on_bits[bit_usage_counts == sorted(bit_usage_counts)[N_readout_per_probe - 1]],
+                                                  N_readout_per_probe - len(probe_on_bits), replace=False).tolist()
+                probe_on_bits = np.array(probe_on_bits)
 
+        # Randomly choose readout probes with replacement
+        else:
+            probe_on_bits = np.random.choice(on_bits, N_readout_per_probe, replace=True)
+
+        np.random.shuffle(probe_on_bits)
         probe_barcodes.append(on_bits_to_barcodes(probe_on_bits, len(barcode)))
+        
+        # Update bit usage counts
+        for ob in probe_on_bits:
+            bit_usage_counts[on_bits == ob] += 1
         
         # Add the readout sequence to the left or right
         seq = row['target_sequence']
         ro_names = ''
-
         n_left = np.floor(N_readout_per_probe / 2)
         
         for j, ob in enumerate(probe_on_bits):
             
             ro_name = on_bit_dict[ob][0] 
             ro_seq = on_bit_dict[ob][1]
+            #print(j, ob, ro_name, ro_seq)
             if j < n_left:
                 ro_names = ro_name + ':' + ro_names 
                 seq = ro_seq + spacer + seq
@@ -216,12 +232,12 @@ def add_readout_seqs_to_probes_of_transcript_round_robin(probe_table:pd.core.fra
     
     return probe_table
 
-def add_readout_seqs_to_probes_round_robin(probe_dict:dict, readout_seqs:pd.core.frame.DataFrame,
+def add_readout_seqs_to_probes_balanced_random(probe_dict:dict, readout_seqs:pd.core.frame.DataFrame,
                                      barcode_table:pd.core.frame.DataFrame,
                                      N_readout_per_probe:int, spacer:str='',
                                      gene_id_key='name', n_threads=1,
                                      each_probe_1_on_bit:bool=False):
-    '''Add readout sequences to probes by a round robin scheme.
+    '''Add readout sequences to probes by randomly choose on-bits in a balanced way.
     Arguments:
         probe_dict: The probe dictionary. The dataframes must have the "target_sequence" column.
         readout_seqs: The data frame of readout sequences with their on-bit positions.
@@ -246,7 +262,7 @@ def add_readout_seqs_to_probes_round_robin(probe_dict:dict, readout_seqs:pd.core
    
     # Add readout probes in parallel
     with Pool(n_threads) as p:
-        results = p.starmap(add_readout_seqs_to_probes_of_transcript_round_robin, args)
+        results = p.starmap(add_readout_seqs_to_probes_of_transcript_balanced_random, args)
     
     # Update the probe dictionary
     for i, kk in enumerate(ks):
